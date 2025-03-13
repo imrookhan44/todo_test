@@ -1,0 +1,62 @@
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Please provide a name'],
+    maxlength: [50, 'Name cannot be more than 50 characters']
+  },
+  email: {
+    type: String,
+    required: [true, 'Please provide an email'],
+    match: [
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+      'Please provide a valid email'
+    ],
+    unique: true
+  },
+  password: {
+    type: String,
+    required: function() {
+      // Only require password for local authentication
+      return this.provider === 'credentials' || !this.provider;
+    },
+    minlength: [6, 'Password must be at least 6 characters long']
+  },
+  image: {
+    type: String,
+    default: ''
+  },
+  provider: {
+    type: String,
+    enum: ['credentials', 'google', null],
+    default: 'credentials'
+  },
+  googleId: {
+    type: String,
+    sparse: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Hash password before saving
+UserSchema.pre('save', async function(next) {
+  if (!this.isModified('password') || !this.password) {
+    return next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Compare password method
+UserSchema.methods.comparePassword = async function(candidatePassword) {
+  if (!this.password) return false;
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+module.exports = mongoose.models.User || mongoose.model('User', UserSchema); 

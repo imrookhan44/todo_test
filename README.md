@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Todo App
 
-## Getting Started
+A full-stack todo application built with Next.js, MongoDB, and NextAuth.js.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- User authentication with email/password and Google OAuth
+- Create, read, update, and delete todos
+- Mark todos as completed
+- Responsive design
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deployment to Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. A [Vercel](https://vercel.com) account
+2. A [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account
+3. A [Google Cloud Platform](https://console.cloud.google.com) project with OAuth credentials
 
-## Learn More
+### Step 1: Update Google OAuth Configuration
 
-To learn more about Next.js, take a look at the following resources:
+1. Go to the [Google Cloud Console](https://console.cloud.google.com)
+2. Navigate to "APIs & Services" > "Credentials"
+3. Edit your OAuth 2.0 Client ID
+4. Add your Vercel deployment URL to the "Authorized JavaScript origins" and "Authorized redirect URIs"
+   - JavaScript origins: `https://your-app-name.vercel.app`
+   - Redirect URI: `https://your-app-name.vercel.app/api/auth/callback/google`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Step 2: Deploy to Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push your code to a GitHub repository
+2. Log in to [Vercel](https://vercel.com)
+3. Click "New Project"
+4. Import your GitHub repository
+5. Configure the following environment variables:
+   - `MONGODB_URI`: Your MongoDB connection string
+   - `JWT_SECRET`: A secure random string for JWT signing
+   - `JWT_LIFETIME`: 30d
+   - `NEXTAUTH_SECRET`: A secure random string for NextAuth.js
+   - `GOOGLE_CLIENT_ID`: Your Google OAuth client ID
+   - `GOOGLE_CLIENT_SECRET`: Your Google OAuth client secret
+6. Click "Deploy"
 
-## Deploy on Vercel
+### Step 3: Update NEXTAUTH_URL
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+After deployment:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Go to your project settings in Vercel
+2. Add a new environment variable:
+   - `NEXTAUTH_URL`: Your Vercel deployment URL (e.g., `https://your-app-name.vercel.app`)
+3. Redeploy your application
+
+## Local Development
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Create a `.env` file with the required environment variables
+4. Run the development server: `npm run dev`
+
+## Environment Variables
+
+- `MONGODB_URI`: MongoDB connection string
+- `JWT_SECRET`: Secret for JWT signing
+- `JWT_LIFETIME`: JWT token lifetime
+- `NEXTAUTH_URL`: URL of your application
+- `NEXTAUTH_SECRET`: Secret for NextAuth.js
+- `GOOGLE_CLIENT_ID`: Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
+
+## Tech Stack
+
+- **Frontend**: Next.js, React, TailwindCSS
+- **Backend**: Express.js, MongoDB
+- **Authentication**: NextAuth.js
+- **Database**: MongoDB
+
+## Project Structure
+
+- `/api`: Backend API with Express.js
+  - `/controllers`: API controllers
+  - `/middleware`: Middleware functions
+  - `/models`: MongoDB models
+  - `/routes`: API routes
+- `/app`: Next.js frontend
+  - `/api`: Next.js API routes
+  - `/auth`: Authentication pages
+  - `/components`: Reusable components
+  - `/dashboard`: Dashboard pages
+  - `/providers`: Context providers
+
+## Time Complexity
+
+- Task Addition: O(1) - Constant time operation for adding a new task
+- Task Deletion: O(1) - Constant time operation for deleting a task
+- Task Update: O(1) - Constant time operation for updating a task
+- Task Listing: O(n) - Linear time operation for listing all tasks
+
+## License
+
+MIT 
