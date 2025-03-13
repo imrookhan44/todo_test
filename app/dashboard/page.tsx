@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -22,6 +22,11 @@ interface TodoItemProps {
   onEdit: (id: string) => void;
 }
 
+// Define error type
+interface ApiError {
+  message: string;
+}
+
 // Dynamically import TodoItem to fix the module not found error
 const TodoItem = dynamic<TodoItemProps>(() => import('../components/TodoItem'), {
   ssr: false,
@@ -37,20 +42,7 @@ export default function Dashboard() {
   const [sessionDebug, setSessionDebug] = useState<string>('');
   const router = useRouter();
 
-  useEffect(() => {
-    // Debug session information
-    if (session) {
-      setSessionDebug(JSON.stringify(session, null, 2));
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    } else if (status === 'authenticated') {
-      fetchTodos();
-    }
-  }, [status, router, session]);
-
-  const fetchTodos = async () => {
+  const fetchTodos = useCallback(async () => {
     try {
       setIsLoading(true);
       console.log('Fetching todos with session:', session);
@@ -67,16 +59,30 @@ export default function Dashboard() {
         }
         
         setTodos(data.todos);
-      } catch (parseError) {
+      } catch (_parseError) {
         console.error('Error parsing response:', responseText);
         throw new Error('Invalid response from server');
       }
-    } catch (error: any) {
-      setError(error.message || 'An error occurred while fetching todos');
+    } catch (error) {
+      const apiError = error as ApiError;
+      setError(apiError.message || 'An error occurred while fetching todos');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    // Debug session information
+    if (session) {
+      setSessionDebug(JSON.stringify(session, null, 2));
+    }
+
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+    } else if (status === 'authenticated') {
+      fetchTodos();
+    }
+  }, [status, router, session, fetchTodos]);
 
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,8 +106,9 @@ export default function Dashboard() {
       setTodos([data.todo, ...todos]);
       setNewTodo('');
       setError('');
-    } catch (error: any) {
-      setError(error.message || 'An error occurred while adding todo');
+    } catch (error) {
+      const apiError = error as ApiError;
+      setError(apiError.message || 'An error occurred while adding todo');
     }
   };
 
@@ -118,8 +125,9 @@ export default function Dashboard() {
 
       setTodos(todos.filter((todo) => todo._id !== id));
       setError('');
-    } catch (error: any) {
-      setError(error.message || 'An error occurred while deleting todo');
+    } catch (error) {
+      const apiError = error as ApiError;
+      setError(apiError.message || 'An error occurred while deleting todo');
     }
   };
 
@@ -144,8 +152,9 @@ export default function Dashboard() {
         )
       );
       setError('');
-    } catch (error: any) {
-      setError(error.message || 'An error occurred while updating todo');
+    } catch (error) {
+      const apiError = error as ApiError;
+      setError(apiError.message || 'An error occurred while updating todo');
     }
   };
 
